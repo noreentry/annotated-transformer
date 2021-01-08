@@ -1,14 +1,12 @@
 import copy
 import math
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn
 import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from torchtext import data, datasets
+from torchtext import data
 
 
 class EncoderDecoder(nn.Module):
@@ -164,7 +162,8 @@ def attention(query, key, value, mask=None, dropout=None):
     p_attn = F.softmax(scores, dim=-1)
     if dropout is not None:
         p_attn = dropout(p_attn)
-    return torch.matmul(p_attn, value), p_attn
+    res = torch.matmul(p_attn, value)
+    return res, p_attn
 
 
 class MultiHeadedAttention(nn.Module):
@@ -281,8 +280,7 @@ class Batch:
     def make_std_mask(tgt: torch.Tensor, pad):
         """Create a mask to hide padding and future words."""
         tgt_mask = (tgt != pad).unsqueeze(-2)
-        tgt_mask = tgt_mask & Variable(
-            subsequent_mask(tgt.size(-1)).type_as(tgt_mask.data))
+        tgt_mask = tgt_mask & Variable(subsequent_mask(tgt.size(-1)).type_as(tgt_mask.data))
         return tgt_mask
 
 
